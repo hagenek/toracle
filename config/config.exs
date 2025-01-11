@@ -48,9 +48,6 @@ config :torkacle, TorkacleWeb.Endpoint,
 # Add this section for file uploads
 config :phoenix, :json_library, Jason
 
-config :openai,
-  api_key: System.get_env("OPENAI_API_KEY")
-
 # Configure tailwind (the version is required)
 config :tailwind,
   version: "3.4.3",

@@ -20,6 +20,21 @@ if System.get_env("PHX_SERVER") do
   config :torkacle, TorkacleWeb.Endpoint, server: true
 end
 
+openai_api_key =
+  System.get_env("OPENAI_API_KEY") ||
+    raise """
+    environment variable OPENAI_API_KEY is missing.
+    For development, you can set it by:
+    1. Adding it to your .env file
+    2. Running `source .env` before starting the server
+    3. Or setting it directly: `export OPENAI_API_KEY=your_key_here`
+    """
+
+config :openai,
+  api_key: openai_api_key,
+  organization_key: System.get_env("OPENAI_ORGANIZATION_KEY"),
+  http_options: [recv_timeout: 30_000]
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||

@@ -4,6 +4,7 @@ defmodule Torkacle.Application do
   @moduledoc false
 
   use Application
+  require Logger
 
   @impl true
   def start(_type, _args) do
@@ -19,6 +20,8 @@ defmodule Torkacle.Application do
       # Start to serve requests, typically the last entry
       TorkacleWeb.Endpoint
     ]
+
+    IO.puts("OpenAI API Key: #{System.get_env("OPENAI_API_KEY")}")
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options

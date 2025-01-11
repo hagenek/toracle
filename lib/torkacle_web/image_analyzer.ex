@@ -130,60 +130,40 @@ defmodule TorkacleWeb.ImageAnalyzer do
 
   defp make_api_call(processed_image) do
     Logger.debug("Preparing OpenAI API call")
-
     start_time = System.monotonic_time(:millisecond)
 
-    # Ensure API key is configured
-    api_key = Application.get_env(:openai, :api_key)
+    message =
+      TorkacleWeb.OpenAIClient.create_vision_message(
+        "What do you estimate this would cost in Norwegian Kroner (NOK)? Reply with ONLY the number, no text or symbols.",
+        processed_image,
+        # Using high detail mode for better accuracy with price estimation
+        "high"
+      )
 
-    if is_nil(api_key) do
-      Logger.error("OpenAI API key not configured")
-      {:error, :missing_api_key}
-    else
-      result =
-        OpenAI.chat_completion(
-          # Updated to new model
-          model: "gpt-4o-mini",
-          messages: [
-            %{
-              role: "user",
-              content: [
-                %{
-                  type: "text",
-                  text:
-                    "What do you estimate this would cost in Norwegian Kroner (NOK)? Reply with ONLY the number, no text or symbols."
-                },
-                %{
-                  type: "image_url",
-                  image_url: %{
-                    url: processed_image,
-                    # Using high detail mode for better accuracy
-                    detail: "high"
-                  }
-                }
-              ]
-            }
-          ],
-          max_tokens: 100,
-          temperature: 0.7
-        )
+    result =
+      TorkacleWeb.OpenAIClient.chat_completion(
+        model: "gpt-4o-mini",
+        messages: [message],
+        max_tokens: 300,
+        temperature: 0.7
+      )
 
-      end_time = System.monotonic_time(:millisecond)
-      duration = end_time - start_time
+    end_time = System.monotonic_time(:millisecond)
+    duration = end_time - start_time
+    Logger.debug("OpenAI API call completed in #{duration}ms")
+    Logger.debug("API Response: #{inspect(result, pretty: true)}")
 
-      Logger.debug("OpenAI API call completed in #{duration}ms")
-      Logger.debug("API Response: #{inspect(result, pretty: true)}")
-
-      result
-    end
+    result
   end
 
-  defp parse_response({:ok, %{choices: [%{"message" => %{"content" => content}} | _]}} = response)
-       when is_binary(content) do
-    Logger.debug(
-      "Successfully extracted content from response: #{inspect(response, pretty: true)}"
-    )
+  # Updated parse_response functions to handle string content
+  defp parse_response(content) when is_binary(content) do
+    Logger.debug("Received content string: #{content}")
+    {:ok, content}
+  end
 
+  defp parse_response({:ok, content}) when is_binary(content) do
+    Logger.debug("Successfully received content: #{content}")
     {:ok, content}
   end
 

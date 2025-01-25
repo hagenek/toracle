@@ -2,6 +2,7 @@ defmodule TorkacleWeb.CostCalculatorLive do
   use TorkacleWeb, :live_view
   require Logger
   alias TorkacleWeb.ImageAnalyzer
+  alias TorkacleWeb.PhotoUploadComponent
 
   @retry_delays [2_000, 5_000, 10_000]
 
@@ -200,101 +201,70 @@ defmodule TorkacleWeb.CostCalculatorLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="max-w-2xl mx-auto p-4" id="cost-calculator">
-      <h1 class="text-3xl font-bold mb-6">Hva koster det?</h1>
-
-      <div class="flex flex-col md:flex-row items-start gap-4 mb-6">
-        <div class="relative">
-          <img
-            src="/images/torkel.png"
-            alt="Torkel"
-            loading="lazy"
-            class="w-32 rounded-full border-2 border-gray-300"
-          />
-
-          <div class="absolute top-0 left-32 bg-white border border-gray-300 shadow-md p-3 rounded-lg max-w-sm">
-            <p class="text-sm font-semibold">
-              <%= if @torkel_guess do %>
-                "Jeg er ganske sikker på at det koster {@torkel_guess}!"
-              <% else %>
-                "Hmm, la meg se på bildet først..."
-              <% end %>
-            </p>
-          </div>
-        </div>
-
-        <div class="mt-8 ml-20 md:mt-0 max-w-sm text-gray-700">
-          <p class="leading-tight">
-            Torkel er kjent for å gjette helt feil på priser.
-            Ta et bilde av noe, så skal han gjette prisen.
-            Etterpå får du se den faktiske estimerte prisen!
-          </p>
-        </div>
+    <div class="max-w-4xl mx-auto">
+      <div class="mb-8 text-center">
+        <h1 class="text-3xl font-bold text-white mb-2">Torkacle</h1>
+        <p class="text-lg text-purple-200">Upload a photo and let Torkel guess the price!</p>
       </div>
 
-      <div class="space-y-4">
-        <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-          <div phx-hook="ImageHook" id="image-hook" phx-update="ignore">
+      <div class="space-y-8">
+        <.live_component
+          module={PhotoUploadComponent}
+          id="photo-upload"
+          processing={@processing}
+        />
+
+        <%= if @calc_result do %>
+          <div class="rounded-xl bg-white/95 p-6 shadow-lg">
             <div class="space-y-4">
-              <div class="flex flex-col items-center gap-4">
-                <input
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  class="hidden"
-                  id="camera-input"
-                  onchange="handleImageSelect(this, 'image-hook')"
-                />
-
-                <button
-                  type="button"
-                  class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded shadow"
-                  onclick="document.getElementById('camera-input').click()"
-                >
-                  Ta bilde
-                </button>
+              <div class="text-gray-900">
+                <h3 class="text-lg font-semibold mb-1">Your Estimate</h3>
+                <p class="text-3xl font-bold text-purple-600"><%= @calc_result %> kr</p>
               </div>
-            </div>
 
-            <div id="preview-container" class="mt-4 hidden">
-              <img id="preview-image" class="mx-auto w-24 border-2 border-gray-200 rounded" />
+              <%= if @torkel_guess do %>
+                <div class="border-t border-gray-200 pt-4 text-gray-900">
+                  <h3 class="text-lg font-semibold mb-1">Torkel's Guess</h3>
+                  <p class="text-3xl font-bold text-purple-600"><%= @torkel_guess %> kr</p>
+                  <p class="mt-2 text-sm text-gray-600">
+                    <%= if String.to_integer(String.replace(@calc_result, ~r/[^\d]/, "")) > String.to_integer(String.replace(@torkel_guess, ~r/[^\d]/, "")) do %>
+                      "That seems a bit high to me! I think it's worth less."
+                    <% else %>
+                      "Actually, I think it's worth more than that!"
+                    <% end %>
+                  </p>
+                </div>
+              <% end %>
             </div>
-          </div>
-
-          <%= if @processing do %>
-            <div class="mt-4">
-              <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-              <p class="mt-2 text-gray-700">Torkel studerer bildet...</p>
-              <p class="mt-1 text-sm text-gray-600">Han tenker hardt!</p>
-            </div>
-          <% end %>
-        </div>
-
-        <%= if @error_message do %>
-          <div class="mt-4 p-4 bg-red-100 rounded-lg border-l-4 border-red-500">
-            <p class="text-red-700 font-semibold">{@error_message}</p>
           </div>
         <% end %>
 
-        <%= if @calc_result do %>
-          <div class="mt-4">
-            <details class="bg-green-100 rounded-lg">
-              <summary class="p-4 cursor-pointer hover:bg-green-200">
-                Se den faktiske prisen...
-              </summary>
-              <div class="p-4 pt-2">
-                <p class="text-xl font-bold">
-                  Den faktiske estimerte prisen er: {@calc_result} kr
-                </p>
-                <p class="mt-2 text-gray-700">
-                  Der bommet Torkel ganske kraftig!
-                </p>
+        <%= if @error_message do %>
+          <div class="rounded-lg bg-red-50 p-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                </svg>
               </div>
-            </details>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-red-800">Error Processing Image</h3>
+                <p class="mt-2 text-sm text-red-700"><%= @error_message %></p>
+              </div>
+            </div>
           </div>
         <% end %>
       </div>
     </div>
+
+    <script>
+    window.addEventListener("phx:open-camera", (e) => {
+      const input = document.querySelector("#photo-upload");
+      if (input) {
+        input.click();
+      }
+    });
+    </script>
     """
   end
 end

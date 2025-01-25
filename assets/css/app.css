@@ -2,4 +2,117 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
-/* This file is for your main application CSS */
+/* Modern scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.6);
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.8);
+}
+
+/* Ensure proper viewport behavior */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Make content scrollable while maintaining viewport height */
+main {
+  height: 100vh;
+  height: -webkit-fill-available;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Enhanced text readability */
+body {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Improved text contrast for different sizes */
+.text-content {
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1.6;
+}
+
+.text-content-secondary {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Glass effect for containers with better contrast */
+.glass-container {
+  background-color: rgba(19, 19, 26, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Cool hover effects for interactive elements */
+.hover-glow:hover {
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+  transform: translateY(-1px);
+}
+
+/* Mobile optimization */
+@supports (-webkit-touch-callout: none) {
+  main {
+    height: -webkit-fill-available;
+  }
+}
+
+/* Add a subtle pulse animation to the logo */
+@keyframes subtle-pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 0 20px 0 rgba(139, 92, 246, 0.6);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4);
+  }
+}
+
+.logo-pulse {
+  animation: subtle-pulse 3s infinite ease-in-out;
+}
+
+/* Text selection color */
+::selection {
+  background-color: rgba(139, 92, 246, 0.3);
+  color: white;
+}
+
+/* Link styles with better contrast */
+a:not([class]) {
+  color: rgb(216, 180, 254);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+a:not([class]):hover {
+  color: rgb(192, 132, 252);
+  text-decoration: underline;
+}
